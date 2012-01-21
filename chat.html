@@ -1,0 +1,65 @@
+<html>
+<head>
+    <title>Simple IRC Clone</title>
+    <style type="text/css">
+        body {
+            background-color:black;
+            color:green;
+            font-family:monospace;
+        }
+        #chat {
+            float:left;
+            width:85%;
+            height:90%;
+        }
+        #message {
+            width:100%;
+            vertical-align:bottom;
+        }
+    </style>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+        var l_pSocket = io.connect('http://107.21.201.50:8124');
+
+        l_pSocket.on('connect', function(){
+            var l_szUsername = prompt("Please provide a username, and press enter:");
+            l_pSocket.emit('adduser', l_szUsername);
+        });
+
+        l_pSocket.on('updateuserlist', function(data) {
+            $('#userlist').empty();
+            $.each(data, function(key,value) {
+                $('#userlist').append('<option>' + value + '</option>');
+            });
+        });
+
+        l_pSocket.on('broadcast', function (p_szUsername, data) {
+            $('#chat').append(p_szUsername + ': ' + data + '<br>');
+        });
+
+
+        $(function(){
+            $('#textbox').submit( function() {
+                var message = $('#textbox').val();
+                $('#textbox').val('');
+                l_pSocket.emit('broadcast', message);
+            });
+
+            $('#textbox').keypress(function(e) {
+                if(e.keyCode == 13) {
+                    $('#textbox').submit();
+                    $('#textbox').focus();
+                }
+            });
+            $('#textbox').focus();
+        });
+
+    </script>
+</head>
+<body>
+    <div id="chat"></div>
+    <div id="users"><select id="userlist" size="10" style="width:15%"/></div>
+    <div id="message"><input id="textbox" style="width:100%;overflow:hidden;"/></div>
+</body>
+</html>
